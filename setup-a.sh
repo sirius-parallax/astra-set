@@ -100,7 +100,7 @@ EOF'
 update_system() {
     echo -e "${BLUE}Обновление системы...${NC}"
     sudo apt update
-    sudo astra-update -A -r
+    sudo -E astra-update -A -r
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Обновление системы завершено.${NC}"
     else
@@ -382,10 +382,26 @@ install_cryptopro() {
     echo -e "${GREEN}Необходимые пакеты для КриптоПро успешно установлены.${NC}"
 
     cryptopro_archive="linux-amd64_deb.tgz"
+    distrib_path="/Common/distrib/КриптоПРО/5/13000/$cryptopro_archive"
     if [ ! -f "$cryptopro_archive" ]; then
-        echo -e "${RED}Архив $cryptopro_archive не найден в текущей директории.${NC}"
-        echo -e "${YELLOW}Пожалуйста, скачайте дистрибутив КриптоПро CSP версии 4.0 (только КС1, без КС2) с сайта cryptopro.ru (раздел 'Центр загрузки') и поместите его в текущую директорию как 'linux-amd64_deb.tgz'.${NC}"
-        return 1
+        echo -e "${YELLOW}Архив $cryptopro_archive не найден в текущей директории. Проверяем сетевой каталог...${NC}"
+        if [ -f "$distrib_path" ]; then
+            echo -e "${BLUE}Копирование $cryptopro_archive из $distrib_path...${NC}"
+            sudo cp "$distrib_path" "$cryptopro_archive"
+            if [ $? -eq 0 ]; then
+                echo -e "${GREEN}Архив успешно скопирован в текущую директорию.${NC}"
+            else
+                echo -e "${RED}Ошибка при копировании архива из $distrib_path.${NC}"
+                echo -e "${YELLOW}Убедитесь, что каталог /Common смонтирован (пункт 7), или скачайте дистрибутив вручную с сайта cryptopro.ru.${NC}"
+                return 1
+            fi
+        else
+            echo -e "${RED}Архив $cryptopro_archive не найден в $distrib_path.${NC}"
+            echo -e "${YELLOW}Пожалуйста, скачайте дистрибутив КриптоПро CSP версии 4.0 (только КС1, без КС2) с сайта cryptopro.ru (раздел 'Центр загрузки') и поместите его в текущую директорию как 'linux-amd64_deb.tgz'.${NC}"
+            return 1
+        fi
+    else
+        echo -e "${GREEN}Архив $cryptopro_archive найден в текущей директории.${NC}"
     fi
 
     echo -e "${BLUE}Распаковка архива $cryptopro_archive...${NC}"
