@@ -3,12 +3,24 @@
 # Функция для вывода меню
 show_menu() {
     echo "Выберите пункт меню:"
-    echo "1. Обновить систему (включая обновление дистрибутива)"
+    echo "1. Обновить /etc/apt/sources.list и обновить систему"
     echo "2. Установить необходимые пакеты"
     echo "3. Настроить сеть"
     echo "4. Создать нового пользователя"
     echo "5. Выполнить все пункты"
     echo "6. Выйти"
+}
+
+# Функция для обновления /etc/apt/sources.list
+update_sources_list() {
+    echo "Обновление /etc/apt/sources.list..."
+    sudo bash -c 'cat > /etc/apt/sources.list <<EOF
+# Основной репозиторий, включающий актуальное оперативное или срочное обновление
+deb https://dl.astralinux.ru/astra/stable/1.8_x86-64/main-repository/     1.8_x86-64 main contrib non-free non-free-firmware
+# Расширенный репозиторий, соответствующий актуальному оперативному обновлению
+deb https://dl.astralinux.ru/astra/stable/1.8_x86-64/extended-repository/ 1.8_x86-64 main contrib non-free non-free-firmware
+EOF'
+    echo "Файл /etc/apt/sources.list обновлен."
 }
 
 # Функция для обновления системы с использованием dist-upgrade
@@ -43,6 +55,7 @@ create_user() {
 
 # Функция для выполнения всех пунктов
 run_all() {
+    update_sources_list
     update_system
     install_packages
     configure_network
@@ -54,7 +67,7 @@ while true; do
     show_menu
     read -p "Введите номер пункта: " choice
     case $choice in
-        1) update_system ;;
+        1) update_sources_list && update_system ;;
         2) install_packages ;;
         3) configure_network ;;
         4) create_user ;;
