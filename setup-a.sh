@@ -12,61 +12,65 @@ clear_screen() {
     clear
 }
 
-# Анимация летающей тарелки
-ufo_animation() {
+# Анимация бегущего человечка
+running_man_animation() {
     clear_screen
-    echo -e "${YELLOW}Добро пожаловать! Вот летающая тарелка:${NC}"
+    echo -e "${YELLOW}Добро пожаловать! Вот бегущий человечек:${NC}"
     sleep 1
 
-    # Кадр 1: Тарелка в центре
+    # Кадр 1: Начальная стойка
     clear_screen
     echo -e "${GREEN}"
-    echo "       .-""""""""-."
-    echo "    .'          '."
-    echo "   /   .-....-.   \\"
-    echo "  : , '        ' , :"
-    echo "   `._          _.'"
-    echo "      `"'"""""'"`"
+    echo "    O  "
+    echo "   /|\\ "
+    echo "   / \\ "
+    echo "  /   \\"
     echo -e "${NC}"
-    sleep 0.4
+    sleep 0.3
 
-    # Кадр 2: Тарелка смещается влево
+    # Кадр 2: Правая нога вперёд
     clear_screen
     echo -e "${GREEN}"
-    echo "    .-""""""""-."
-    echo " .'          '."
-    echo "/   .-....-.   \\"
-    echo ": , '        ' , :"
-    echo " `._          _.'"
-    echo "    `"'"""""'"`"
+    echo "    O  "
+    echo "   /|\\ "
+    echo "   /|  "
+    echo "  /    \\"
+    echo " /      "
     echo -e "${NC}"
-    sleep 0.4
+    sleep 0.3
 
-    # Кадр 3: Тарелка смещается вправо
+    # Кадр 3: Переходное положение
     clear_screen
     echo -e "${GREEN}"
-    echo "          .-""""""""-."
-    echo "       .'          '."
-    echo "      /   .-....-.   \\"
-    echo "     : , '        ' , :"
-    echo "      `._          _.'"
-    echo "         `"'"""""'"`"
+    echo "    O  "
+    echo "   /|\\ "
+    echo "   / \\ "
+    echo "  /   \\"
+    echo " /     "
     echo -e "${NC}"
-    sleep 0.4
+    sleep 0.3
 
-    # Кадр 4: Тарелка поднимается вверх
+    # Кадр 4: Левая нога вперёд
     clear_screen
     echo -e "${GREEN}"
-    echo "       .-""""""""-."
-    echo "    .'          '."
-    echo "   /   .-....-.   \\"
-    echo "  : , '        ' , :"
-    echo "   `._          _.'"
-    echo "      `"'"""""'"`"
-    echo "          ||||"
-    echo "          ||||"
+    echo "    O  "
+    echo "   /|\\ "
+    echo "    |\\ "
+    echo "  /    \\"
+    echo "       \\"
     echo -e "${NC}"
-    sleep 0.4
+    sleep 0.3
+
+    # Кадр 5: Правая рука вперёд, левая нога назад
+    clear_screen
+    echo -e "${GREEN}"
+    echo "    O  "
+    echo "  / |\\ "
+    echo " /  |  "
+    echo "/    \\ "
+    echo "      \\"
+    echo -e "${NC}"
+    sleep 0.3
 
     clear_screen
     echo -e "${YELLOW}Анимация завершена. Переходим к меню...${NC}"
@@ -693,7 +697,7 @@ run_all() {
 }
 
 # Запуск анимации перед началом скрипта
-ufo_animation
+running_man_animation
 
 # Основной цикл скрипта
 while true; do
