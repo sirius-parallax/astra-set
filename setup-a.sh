@@ -15,7 +15,7 @@ clear_screen() {
 # Анимация шагающего человечка
 walking_man_animation() {
     clear_screen
-    echo -e "${YELLOW}Добро пожаловать! Вот шагающий человечек:${NC}"
+    echo -e "${YELLOW}Добро пожаловать! ${NC}"
     sleep 1
 
     # Кадр 1: Стоит прямо
