@@ -18,59 +18,69 @@ running_man_animation() {
     echo -e "${YELLOW}Добро пожаловать! Вот бегущий человечек:${NC}"
     sleep 1
 
-    # Кадр 1: Начальная стойка
+    # Кадр 1: Начальная стойка, обе ноги вместе
     clear_screen
     echo -e "${GREEN}"
     echo "    O  "
     echo "   /|\\ "
     echo "   / \\ "
-    echo "  /   \\"
+    echo "  /| |\\"
     echo -e "${NC}"
-    sleep 0.3
+    sleep 0.25
 
-    # Кадр 2: Правая нога вперёд
+    # Кадр 2: Правая нога поднимается
     clear_screen
     echo -e "${GREEN}"
     echo "    O  "
     echo "   /|\\ "
-    echo "   /|  "
-    echo "  /    \\"
-    echo " /      "
+    echo "  / |  "
+    echo " /  |  "
+    echo "/      "
     echo -e "${NC}"
-    sleep 0.3
+    sleep 0.25
 
-    # Кадр 3: Переходное положение
+    # Кадр 3: Правая нога вперёд, левая рука назад
     clear_screen
     echo -e "${GREEN}"
     echo "    O  "
-    echo "   /|\\ "
-    echo "   / \\ "
-    echo "  /   \\"
-    echo " /     "
-    echo -e "${NC}"
-    sleep 0.3
-
-    # Кадр 4: Левая нога вперёд
-    clear_screen
-    echo -e "${GREEN}"
-    echo "    O  "
-    echo "   /|\\ "
-    echo "    |\\ "
-    echo "  /    \\"
+    echo "   /| \\"
+    echo "  / |  "
+    echo " /  | \\"
     echo "       \\"
     echo -e "${NC}"
-    sleep 0.3
+    sleep 0.25
 
-    # Кадр 5: Правая рука вперёд, левая нога назад
+    # Кадр 4: Переходное положение, левая нога поднимается
+    clear_screen
+    echo -e "${GREEN}"
+    echo "    O  "
+    echo "   /| \\"
+    echo "    | \\"
+    echo "    |  \\"
+    echo "   /    "
+    echo -e "${NC}"
+    sleep 0.25
+
+    # Кадр 5: Левая нога вперёд, правая рука назад
     clear_screen
     echo -e "${GREEN}"
     echo "    O  "
     echo "  / |\\ "
     echo " /  |  "
-    echo "/    \\ "
-    echo "      \\"
+    echo "/   | \\"
+    echo "/      "
     echo -e "${NC}"
-    sleep 0.3
+    sleep 0.25
+
+    # Кадр 6: Возврат к начальной стойке
+    clear_screen
+    echo -e "${GREEN}"
+    echo "    O  "
+    echo "   /|\\ "
+    echo "   / \\ "
+    echo "  /| |\\"
+    echo -e "${NC}"
+    sleep 0.25
 
     clear_screen
     echo -e "${YELLOW}Анимация завершена. Переходим к меню...${NC}"
@@ -94,6 +104,13 @@ show_menu() {
     echo -e "12. ${YELLOW}Настроить X11VNC для удаленного доступа${NC}"
     echo -e "13. ${YELLOW}Выполнить все пункты${NC}"
     echo -e "14. ${YELLOW}Выйти${NC}"
+    echo -e "15. ${YELLOW}Перезагрузить систему${NC}"
+}
+
+# Функция для перезагрузки системы
+reboot_system() {
+    echo -e "${BLUE}Перезагрузка системы...${NC}"
+    sudo reboot
 }
 
 # Функция для обновления /etc/apt/sources.list
@@ -364,13 +381,11 @@ setup_network_mount() {
 install_cryptopro() {
     echo -e "${BLUE}Установка КриптоПро CSP (только КС1, без КС2)...${NC}"
 
-    # Проверка, установлен ли КриптоПро
     if command -v cprocsp-uninstall.sh &>/dev/null; then
         echo -e "${YELLOW}КриптоПро CSP уже установлен на системе.${NC}"
         return 0
     fi
 
-    # Установка необходимых пакетов для КриптоПро
     echo -e "${BLUE}Установка необходимых пакетов для КриптоПро CSP...${NC}"
     sudo apt update
     sudo apt install -y whiptail libccid pcscd libpcsclite1 opensc libengine-pkcs11-openssl*
@@ -380,7 +395,6 @@ install_cryptopro() {
     fi
     echo -e "${GREEN}Необходимые пакеты для КриптоПро успешно установлены.${NC}"
 
-    # Проверка наличия архива в текущей директории или копирование из сетевого каталога
     cryptopro_archive="linux-amd64_deb.tgz"
     distrib_path="/media/shared/common/distrib/КриптоПРО/5/$cryptopro_archive"
     if [ ! -f "$cryptopro_archive" ]; then
@@ -404,7 +418,6 @@ install_cryptopro() {
         echo -e "${GREEN}Архив $cryptopro_archive найден в текущей директории.${NC}"
     fi
 
-    # Распаковка архива
     echo -e "${BLUE}Распаковка архива $cryptopro_archive...${NC}"
     sudo tar -xzf "$cryptopro_archive"
     if [ $? -ne 0 ]; then
@@ -412,20 +425,17 @@ install_cryptopro() {
         return 1
     fi
 
-    # Определение имени распакованной директории
     cryptopro_dir=$(ls -d linux-amd64_deb* 2>/dev/null | head -n 1)
     if [ -z "$cryptopro_dir" ] || [ ! -d "$cryptopro_dir" ]; then
         echo -e "${RED}Не удалось найти распакованную директорию с deb-пакетами.${NC}"
         return 1
     fi
 
-    # Переход в директорию с deb-пакетами
     cd "$cryptopro_dir" || {
         echo -e "${RED}Ошибка при переходе в директорию $cryptopro_dir.${NC}"
         return 1
     }
 
-    # Установка всех deb-пакетов
     echo -e "${BLUE}Установка deb-пакетов КриптоПро CSP...${NC}"
     sudo dpkg -i *.deb
     if [ $? -ne 0 ]; then
@@ -439,7 +449,6 @@ install_cryptopro() {
         fi
     fi
 
-    # Возврат в исходную директорию
     cd .. || {
         echo -e "${RED}Ошибка при возврате в исходную директорию.${NC}"
         return 1
@@ -447,7 +456,6 @@ install_cryptopro() {
 
     echo -e "${GREEN}КриптоПро CSP успешно установлен.${NC}"
 
-    # Проверка версии КриптоПро
     cryptopro_version=$(/opt/cprocsp/bin/amd64/cryptcp --version 2>/dev/null | grep -oP '\d+\.\d+')
     if [[ "$cryptopro_version" =~ ^5\.[0-9]+$ ]]; then
         echo -e "${RED}Установлена версия $cryptopro_version с поддержкой КС2 (ГОСТ Р 34.10-2012), что не соответствует требованию 'только КС1'.${NC}"
@@ -466,7 +474,6 @@ install_cryptopro() {
         echo -e "${YELLOW}Не удалось определить версию КриптоПро. Проверьте установку вручную: /opt/cprocsp/bin/amd64/cryptcp --version${NC}"
     fi
 
-    # Запрос ввода лицензионного ключа
     echo -e -n "${YELLOW}Введите лицензионный ключ для КриптоПро CSP (например, 50503-P0000-0197W-TA2AB-DWG2R): ${NC}"
     read license_key
     if [ -z "$license_key" ]; then
@@ -481,7 +488,6 @@ install_cryptopro() {
         fi
     fi
 
-    # Запрос перезагрузки
     echo -e -n "${YELLOW}Требуется перезагрузка для завершения установки КриптоПро CSP. Перезагрузить сейчас? (y/n): ${NC}"
     read reboot_choice
     if [[ "$reboot_choice" =~ ^[Yy]$ ]]; then
@@ -731,6 +737,7 @@ while true; do
         12) install_x11vnc ;;
         13) run_all ;;
         14) break ;;
+        15) reboot_system ;;
         *) echo -e "${RED}Неверный выбор. Попробуйте снова.${NC}" ;;
     esac
     echo -e -n "${BLUE}Нажмите Enter чтобы продолжить...${NC}"
