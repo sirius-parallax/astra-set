@@ -15,7 +15,7 @@ clear_screen() {
 # Анимация шагающего человечка
 walking_man_animation() {
     clear_screen
-    echo -e "${YELLOW}Добро пожаловать! ${NC}"
+    echo -e "${YELLOW}Добро пожаловать! Вот шагающий человечек:${NC}"
     sleep 1
 
     # Кадр 1: Стоит прямо
@@ -100,7 +100,7 @@ EOF'
 update_system() {
     echo -e "${BLUE}Обновление системы...${NC}"
     sudo apt update
-    sudo -E astra-update -A -r
+    sudo -E astra-update -A -r -T
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Обновление системы завершено.${NC}"
     else
@@ -293,7 +293,7 @@ setup_network_mount() {
                     return 0
                 fi
             else
-                echo -e "${RED}Не удалось загрузить модуль CIFS. Возможно, нужно обновить ядро.${NC}"
+                echo -e kernels"${RED}Не удалось загрузить модуль CIFS. Возможно, нужно обновить ядро.${NC}"
                 return 1
             fi
         else
