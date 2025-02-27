@@ -7,7 +7,61 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color (сброс цвета)
 
-# Функция для вывода меню
+# Функция для очистки экрана
+clear_screen() {
+    clear
+}
+
+# Анимация шагающего человечка
+walking_man_animation() {
+    clear_screen
+    echo -e "${YELLOW}Добро пожаловать! Вот шагающий человечек:${NC}"
+    sleep 1
+
+    # Кадр 1: Стоит прямо
+    clear_screen
+    echo -e "${GREEN}"
+    echo "    O  "
+    echo "   /|\\ "
+    echo "   / \\ "
+    echo -e "${NC}"
+    sleep 0.4
+
+    # Кадр 2: Шаг правой ногой
+    clear_screen
+    echo -e "${GREEN}"
+    echo "    O  "
+    echo "   /|\\ "
+    echo "   /|  "
+    echo "  /    "
+    echo -e "${NC}"
+    sleep 0.4
+
+    # Кадр 3: Стоит прямо
+    clear_screen
+    echo -e "${GREEN}"
+    echo "    O  "
+    echo "   /|\\ "
+    echo "   / \\ "
+    echo -e "${NC}"
+    sleep 0.4
+
+    # Кадр 4: Шаг левой ногой
+    clear_screen
+    echo -e "${GREEN}"
+    echo "    O  "
+    echo "   /|\\ "
+    echo "    |\\ "
+    echo "     \\ "
+    echo -e "${NC}"
+    sleep 0.4
+
+    clear_screen
+    echo -e "${YELLOW}Анимация завершена. Переходим к меню...${NC}"
+    sleep 1
+}
+
+# Функция для отображения меню
 show_menu() {
     echo -e "${BLUE}Выберите пункт меню:${NC}"
     echo -e "1. ${YELLOW}Обновить /etc/apt/sources.list и обновить систему${NC}"
@@ -17,9 +71,13 @@ show_menu() {
     echo -e "5. ${YELLOW}Создать каталог /media/shared/common и настроить права${NC}"
     echo -e "6. ${YELLOW}Создать файл .windowscredentials для монтирования сетевого каталога${NC}"
     echo -e "7. ${YELLOW}Настроить монтирование сетевой папки в /etc/fstab${NC}"
-    echo -e "8. ${YELLOW}Установить КриптоПро CSP (только КС1, без КС2)${NC}"
-    echo -e "9. ${YELLOW}Выполнить все пункты${NC}"
-    echo -e "10. ${YELLOW}Выйти${NC}"
+    echo -e "8. ${YELLOW}Установить КриптоПро CSP \(только КС1, без КС2\)${NC}"
+    echo -e "9. ${YELLOW}Установить Wine${NC}"
+    echo -e "10. ${YELLOW}Установить Bitrix24 Desktop${NC}"
+    echo -e "11. ${YELLOW}Установить дополнительные программы \(Yandex Browser, Fly-DM RDP, Remmina\)${NC}"
+    echo -e "12. ${YELLOW}Настроить X11VNC для удаленного доступа${NC}"
+    echo -e "13. ${YELLOW}Выполнить все пункты${NC}"
+    echo -e "14. ${YELLOW}Выйти${NC}"
 }
 
 # Функция для обновления /etc/apt/sources.list
@@ -309,13 +367,11 @@ setup_network_mount() {
 install_cryptopro() {
     echo -e "${BLUE}Установка КриптоПро CSP (только КС1, без КС2)...${NC}"
 
-    # Проверка наличия установленного КриптоПро
     if command -v cprocsp-uninstall.sh &>/dev/null; then
         echo -e "${YELLOW}КриптоПро CSP уже установлен на системе.${NC}"
         return 0
     fi
 
-    # Установка необходимых пакетов для КриптоПро
     echo -e "${BLUE}Установка необходимых пакетов для КриптоПро CSP...${NC}"
     sudo apt update
     sudo apt install -y whiptail libccid pcscd libpcsclite1 opensc libengine-pkcs11-openssl*
@@ -325,7 +381,6 @@ install_cryptopro() {
     fi
     echo -e "${GREEN}Необходимые пакеты для КриптоПро успешно установлены.${NC}"
 
-    # Проверка наличия архiva linux-amd64_deb.tgz
     cryptopro_archive="linux-amd64_deb.tgz"
     if [ ! -f "$cryptopro_archive" ]; then
         echo -e "${RED}Архив $cryptopro_archive не найден в текущей директории.${NC}"
@@ -333,7 +388,6 @@ install_cryptopro() {
         return 1
     fi
 
-    # Распаковка архива
     echo -e "${BLUE}Распаковка архива $cryptopro_archive...${NC}"
     sudo tar -xzf "$cryptopro_archive"
     if [ $? -ne 0 ]; then
@@ -341,20 +395,17 @@ install_cryptopro() {
         return 1
     fi
 
-    # Определение имени распакованной директории
     cryptopro_dir=$(ls -d linux-amd64_deb* 2>/dev/null | head -n 1)
     if [ -z "$cryptopro_dir" ] || [ ! -d "$cryptopro_dir" ]; then
         echo -e "${RED}Не удалось найти распакованную директорию с deb-пакетами.${NC}"
         return 1
     fi
 
-    # Переход в директорию с deb-пакетами
     cd "$cryptopro_dir" || {
         echo -e "${RED}Ошибка при переходе в директорию $cryptopro_dir.${NC}"
         return 1
     }
 
-    # Установка всех deb-пакетов
     echo -e "${BLUE}Установка deb-пакетов КриптоПро CSP...${NC}"
     sudo dpkg -i *.deb
     if [ $? -ne 0 ]; then
@@ -368,7 +419,6 @@ install_cryptopro() {
         fi
     fi
 
-    # Возврат в исходную директорию
     cd .. || {
         echo -e "${RED}Ошибка при возврате в исходную директорию.${NC}"
         return 1
@@ -376,7 +426,6 @@ install_cryptopro() {
 
     echo -e "${GREEN}КриптоПро CSP успешно установлен.${NC}"
 
-    # Проверка версии КриптоПро
     cryptopro_version=$(/opt/cprocsp/bin/amd64/cryptcp --version 2>/dev/null | grep -oP '\d+\.\d+')
     if [[ "$cryptopro_version" =~ ^5\.[0-9]+$ ]]; then
         echo -e "${RED}Установлена версия $cryptopro_version с поддержкой КС2 (ГОСТ Р 34.10-2012), что не соответствует требованию 'только КС1'.${NC}"
@@ -395,7 +444,6 @@ install_cryptopro() {
         echo -e "${YELLOW}Не удалось определить версию КриптоПро. Проверьте установку вручную: /opt/cprocsp/bin/amd64/cryptcp --version${NC}"
     fi
 
-    # Запрос ввода лицензионного ключа
     echo -e -n "${YELLOW}Введите лицензионный ключ для КриптоПро CSP (например, 50503-P0000-0197W-TA2AB-DWG2R): ${NC}"
     read license_key
     if [ -z "$license_key" ]; then
@@ -410,13 +458,211 @@ install_cryptopro() {
         fi
     fi
 
-    # Запрос перезагрузки
     echo -e -n "${YELLOW}Требуется перезагрузка для завершения установки КриптоПро CSP. Перезагрузить сейчас? (y/n): ${NC}"
     read reboot_choice
     if [[ "$reboot_choice" =~ ^[Yy]$ ]]; then
         sudo reboot
     else
         echo -e "${YELLOW}Перезагрузка отложена. Пожалуйста, перезагрузите систему вручную для завершения установки.${NC}"
+    fi
+}
+
+# Функция для установки Wine
+install_wine() {
+    echo -e "${BLUE}Установка Wine и связанных пакетов...${NC}"
+    sudo apt update
+    echo -e "${BLUE}Установка пакетов Wine, winetricks, zenity, playonlinux...${NC}"
+    sudo apt install -y wine winetricks zenity playonlinux
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Ошибка при установке Wine или связанных пакетов. Проверьте интернет или репозитории.${NC}"
+        return 1
+    fi
+
+    echo -e "${BLUE}Обновление winetricks...${NC}"
+    sudo winetricks --self-update -q
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Winetricks успешно обновлен.${NC}"
+    else
+        echo -e "${YELLOW}Ошибка при обновлении winetricks, но установка Wine завершена.${NC}"
+    fi
+
+    echo -e "${BLUE}Установка wine-gecko и wine-mono...${NC}"
+    sudo apt install -y wine-mono wine-gecko
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Wine-gecko и wine-mono успешно установлены.${NC}"
+    else
+        echo -e "${YELLOW}Ошибка при установке wine-gecko/wine-mono, но они могут быть уже включены в Wine.${NC}"
+    fi
+
+    echo -e "${GREEN}Установка Wine и связанных пакетов завершена (только 64-битная версия).${NC}"
+    echo -e -n "${YELLOW}Рекомендуется перезагрузка после установки Wine. Перезагрузить сейчас? (y/n): ${NC}"
+    read reboot_choice
+    if [[ "$reboot_choice" =~ ^[Yy]$ ]]; then
+        sudo reboot
+    else
+        echo -e "${YELLOW}Перезагрузка отложена. Wine готов к использованию.${NC}"
+    fi
+}
+
+# Функция для установки Bitrix24 Desktop
+install_bitrix24() {
+    echo -e "${BLUE}Установка Bitrix24 Desktop...${NC}"
+    if dpkg -l | grep -q bitrix24-desktop; then
+        echo -e "${YELLOW}Bitrix24 Desktop уже установлен на системе.${NC}"
+        return 0
+    fi
+
+    bitrix_url="https://repos.1c-bitrix.ru/b24/bitrix24_desktop_ru.deb"
+    bitrix_deb="bitrix24_desktop_ru.deb"
+    echo -e "${BLUE}Скачивание $bitrix_deb...${NC}"
+    sudo wget -O "$bitrix_deb" "$bitrix_url"
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Ошибка при скачивании Bitrix24 Desktop. Проверьте интернет или URL: $bitrix_url${NC}"
+        return 1
+    fi
+
+    echo -e "${BLUE}Установка Bitrix24 Desktop...${NC}"
+    sudo dpkg -i "$bitrix_deb"
+    if [ $? -ne 0 ]; then
+        echo -e "${YELLOW}Обнаружены неудовлетворенные зависимости. Исправляем...${NC}"
+        sudo apt-get update
+        sudo apt-get install -f -y
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Ошибка при установке Bitrix24 Desktop или исправлении зависимостей.${NC}"
+            sudo rm -f "$bitrix_deb"
+            return 1
+        fi
+    fi
+
+    sudo rm -f "$bitrix_deb"
+    echo -e "${GREEN}Bitrix24 Desktop успешно установлен.${NC}"
+    echo -e -n "${YELLOW}Рекомендуется перезагрузка после установки Bitrix24 Desktop. Перезагрузить сейчас? (y/n): ${NC}"
+    read reboot_choice
+    if [[ "$reboot_choice" =~ ^[Yy]$ ]]; then
+        sudo reboot
+    else
+        echo -e "${YELLOW}Перезагрузка отложена. Bitrix24 Desktop готов к использованию.${NC}"
+    fi
+}
+
+# Функция для установки дополнительных программ (Yandex Browser, Fly-DM RDP, Remmina)
+install_additional_apps() {
+    echo -e "${BLUE}Установка дополнительных программ (Yandex Browser, Fly-DM RDP, Remmina)...${NC}"
+    sudo apt update
+    echo -e "${BLUE}Установка yandex-browser-stable, fly-dm-rdp, remmina...${NC}"
+    sudo apt install -y yandex-browser-stable fly-dm-rdp remmina
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Ошибка при установке дополнительных программ. Проверьте интернет или репозитории.${NC}"
+        return 1
+    fi
+    echo -e "${GREEN}Дополнительные программы успешно установлены.${NC}"
+
+    echo -e "${BLUE}Настройка CUPS для отображения только обнаруженных принтеров...${NC}"
+    cups_conf="/etc/cups/client.conf"
+    if [ ! -f "$cups_conf" ]; then
+        sudo touch "$cups_conf"
+    fi
+    if ! grep -q "DiscoveredOnly Yes" "$cups_conf"; then
+        echo "DiscoveredOnly Yes" | sudo tee -a "$cups_conf" > /dev/null
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}Настройка CUPS обновлена: отображаются только обнаруженные принтеры.${NC}"
+        else
+            echo -e "${RED}Ошибка при обновлении $cups_conf.${NC}"
+            return 1
+        fi
+    else
+        echo -e "${YELLOW}Настройка CUPS уже содержит DiscoveredOnly Yes.${NC}"
+    fi
+
+    echo -e "${BLUE}Перезапуск службы CUPS...${NC}"
+    sudo systemctl restart cups
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Служба CUPS успешно перезапущена.${NC}"
+    else
+        echo -e "${RED}Ошибка при перезапуске службы CUPS.${NC}"
+        return 1
+    fi
+
+    echo -e -n "${YELLOW}Рекомендуется перезагрузка после установки программ и настройки CUPS. Перезагрузить сейчас? (y/n): ${NC}"
+    read reboot_choice
+    if [[ "$reboot_choice" =~ ^[Yy]$ ]]; then
+        sudo reboot
+    else
+        echo -e "${YELLOW}Перезагрузка отложена. Программы готовы к использованию.${NC}"
+    fi
+}
+
+# Функция для настройки X11VNC
+install_x11vnc() {
+    echo -e "${BLUE}Настройка X11VNC для удаленного доступа...${NC}"
+
+    # Обновление списка пакетов
+    sudo apt update
+
+    # Установка x11vnc
+    echo -e "${BLUE}Установка x11vnc...${NC}"
+    sudo apt install -y x11vnc
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Ошибка при установке x11vnc. Проверьте интернет или репозитории.${NC}"
+        return 1
+    fi
+    echo -e "${GREEN}x11vnc успешно установлен.${NC}"
+
+    # Создание файла службы
+    service_file="/etc/systemd/system/x11vnc.service"
+    echo -e "${BLUE}Создание файла службы $service_file...${NC}"
+    sudo bash -c "cat > $service_file <<EOF
+[Unit]
+Description=Start x11vnc at startup.
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/x11vnc -auth guess -forever -loop -noxdamage -repeat -rfbport 5900 -shared -dontdisconnect -rfbauth /etc/x11vnc.pass -o /var/log/x11vnc.log
+
+[Install]
+WantedBy=multi-user.target
+EOF"
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Файл службы $service_file успешно создан.${NC}"
+    else
+        echo -e "${RED}Ошибка при создании файла службы $service_file.${NC}"
+        return 1
+    fi
+
+    # Создание пароля для VNC через временный файл
+    echo -e "${BLUE}Создание пароля для X11VNC...${NC}"
+    temp_pass_file=$(mktemp)  # Создаём временный файл
+    echo "vnc13" > "$temp_pass_file"  # Записываем пароль в файл
+    sudo x11vnc -storepasswd "$temp_pass_file" /etc/x11vnc.pass  # Передаём файл в команду
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Пароль для X11VNC успешно установлен (vnc13).${NC}"
+    else
+        echo -e "${RED}Ошибка при создании пароля для X11VNC.${NC}"
+        rm -f "$temp_pass_file"  # Удаляем временный файл в случае ошибки
+        return 1
+    fi
+    rm -f "$temp_pass_file"  # Удаляем временный файл после успеха
+
+    # Перезапуск служб и активация x11vnc
+    echo -e "${BLUE}Перезапуск служб и активация X11VNC...${NC}"
+    sudo systemctl daemon-reload
+    sudo systemctl enable x11vnc.service
+    sudo systemctl start x11vnc.service
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}X11VNC успешно настроен и запущен (порт 5900, пароль: vnc13).${NC}"
+    else
+        echo -e "${RED}Ошибка при настройке или запуске X11VNC.${NC}"
+        return 1
+    fi
+
+    # Запрос перезагрузки
+    echo -e -n "${YELLOW}Требуется перезагрузка для завершения настройки X11VNC. Перезагрузить сейчас? (y/n): ${NC}"
+    read reboot_choice
+    if [[ "$reboot_choice" =~ ^[Yy]$ ]]; then
+        sudo reboot
+    else
+        echo -e "${YELLOW}Перезагрузка отложена. X11VNC уже работает.${NC}"
     fi
 }
 
@@ -431,10 +677,18 @@ run_all() {
     setup_windows_credentials
     setup_network_mount
     install_cryptopro
+    install_wine
+    install_bitrix24
+    install_additional_apps
+    install_x11vnc
 }
+
+# Запуск анимации перед началом скрипта
+walking_man_animation
 
 # Основной цикл скрипта
 while true; do
+    clear_screen
     show_menu
     echo -e -n "${YELLOW}Введите номер пункта: ${NC}"
     read choice
@@ -447,8 +701,12 @@ while true; do
         6) setup_windows_credentials ;;
         7) setup_network_mount ;;
         8) install_cryptopro ;;
-        9) run_all ;;
-        10) break ;;
+        9) install_wine ;;
+        10) install_bitrix24 ;;
+        11) install_additional_apps ;;
+        12) install_x11vnc ;;
+        13) run_all ;;
+        14) break ;;
         *) echo -e "${RED}Неверный выбор. Попробуйте снова.${NC}" ;;
     esac
     echo -e -n "${BLUE}Нажмите Enter чтобы продолжить...${NC}"
