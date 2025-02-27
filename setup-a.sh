@@ -12,47 +12,59 @@ clear_screen() {
     clear
 }
 
-# Анимация шагающего человечка
-walking_man_animation() {
+# Анимация летающей тарелки
+ufo_animation() {
     clear_screen
-    echo -e "${YELLOW}Добро пожаловать! Вот шагающий человечек:${NC}"
+    echo -e "${YELLOW}Добро пожаловать! Вот летающая тарелка:${NC}"
     sleep 1
 
-    # Кадр 1: Стоит прямо
+    # Кадр 1: Тарелка в центре
     clear_screen
     echo -e "${GREEN}"
-    echo "    O  "
-    echo "   /|\\ "
-    echo "   / \\ "
+    echo "       .-""""""""-."
+    echo "    .'          '."
+    echo "   /   .-....-.   \\"
+    echo "  : , '        ' , :"
+    echo "   `._          _.'"
+    echo "      `"'"""""'"`"
     echo -e "${NC}"
     sleep 0.4
 
-    # Кадр 2: Шаг правой ногой
+    # Кадр 2: Тарелка смещается влево
     clear_screen
     echo -e "${GREEN}"
-    echo "    O  "
-    echo "   /|\\ "
-    echo "   /|  "
-    echo "  /    "
+    echo "    .-""""""""-."
+    echo " .'          '."
+    echo "/   .-....-.   \\"
+    echo ": , '        ' , :"
+    echo " `._          _.'"
+    echo "    `"'"""""'"`"
     echo -e "${NC}"
     sleep 0.4
 
-    # Кадр 3: Стоит прямо
+    # Кадр 3: Тарелка смещается вправо
     clear_screen
     echo -e "${GREEN}"
-    echo "    O  "
-    echo "   /|\\ "
-    echo "   / \\ "
+    echo "          .-""""""""-."
+    echo "       .'          '."
+    echo "      /   .-....-.   \\"
+    echo "     : , '        ' , :"
+    echo "      `._          _.'"
+    echo "         `"'"""""'"`"
     echo -e "${NC}"
     sleep 0.4
 
-    # Кадр 4: Шаг левой ногой
+    # Кадр 4: Тарелка поднимается вверх
     clear_screen
     echo -e "${GREEN}"
-    echo "    O  "
-    echo "   /|\\ "
-    echo "    |\\ "
-    echo "     \\ "
+    echo "       .-""""""""-."
+    echo "    .'          '."
+    echo "   /   .-....-.   \\"
+    echo "  : , '        ' , :"
+    echo "   `._          _.'"
+    echo "      `"'"""""'"`"
+    echo "          ||||"
+    echo "          ||||"
     echo -e "${NC}"
     sleep 0.4
 
@@ -255,6 +267,7 @@ EOF"
 setup_network_mount() {
     echo -e "${BLUE}Настройка монтирования сетевой папки в /etc/fstab...${NC}"
 
+    # Проверка и установка cifs-utils
     if ! dpkg -l | grep -q cifs-utils; then
         echo -e "${RED}Пакет cifs-utils не установлен. Устанавливаем...${NC}"
         sudo apt-get update
@@ -276,45 +289,20 @@ setup_network_mount() {
         echo -e "${YELLOW}Пакет cifs-utils уже установлен.${NC}"
     fi
 
-    if ! lsmod | grep -q cifs && ! modprobe cifs 2>/dev/null; then
-        echo -e "${RED}Модуль CIFS не найден в ядре. Попытка установить дополнительные модули...${NC}"
-        sudo apt-get update
-        sudo apt-get install -y linux-modules-extra-$(uname -r)
-        if [ $? -eq 0 ]; then
-            sudo modprobe cifs
-            if [ $? -eq 0 ]; then
-                echo -e "${GREEN}Модуль CIFS успешно загружен.${NC}"
-                echo -e -n "${YELLOW}Требуется перезагрузка для активации модуля CIFS. Перезагрузить сейчас? (y/n): ${NC}"
-                read reboot_choice
-                if [[ "$reboot_choice" =~ ^[Yy]$ ]]; then
-                    sudo reboot
-                else
-                    echo -e "${YELLOW}Перезагрузка отложена. Пожалуйста, перезагрузите систему вручную для завершения настройки.${NC}"
-                    return 0
-                fi
-            else
-                echo -e "${RED}Не удалось загрузить модуль CIFS. Возможно, нужно обновить ядро.${NC}"
-                return 1
-            fi
-        else
-            echo -e "${RED}Не удалось установить linux-modules-extra. Проверьте репозитории.${NC}"
-            return 1
-        fi
-    else
-        echo -e "${YELLOW}Поддержка CIFS уже доступна.${NC}"
-    fi
-
+    # Получаем список пользователей
     users=($(getent passwd | grep -E "/home" | cut -d: -f1))
     if [ ${#users[@]} -eq 0 ]; then
         echo -e "${RED}Нет активных пользователей с домашними каталогами.${NC}"
         return 1
     fi
 
+    # Показываем список пользователей
     echo -e "${BLUE}Список активных пользователей:${NC}"
     for i in "${!users[@]}"; do
         echo -e "$((i+1)). ${YELLOW}${users[$i]}${NC}"
     done
 
+    # Запрашиваем выбор пользователя
     echo -e -n "${YELLOW}Выберите пользователя (введите номер): ${NC}"
     read user_choice
     if [[ ! $user_choice =~ ^[0-9]+$ ]] || [ $user_choice -lt 1 ] || [ $user_choice -gt ${#users[@]} ]; then
@@ -326,14 +314,17 @@ setup_network_mount() {
     home_dir=$(getent passwd "$selected_user" | cut -d: -f6)
     credentials_file="$home_dir/.windowscredentials"
 
+    # Проверяем наличие файла учетных данных
     if [ ! -f "$credentials_file" ]; then
         echo -e "${RED}Файл $credentials_file не найден. Сначала создайте его в пункте 6.${NC}"
         return 1
     fi
 
+    # Определяем путь к сетевой папке и точку монтирования
     share_path="//server-ad.expnet.ru/Common"
     mount_point="/media/shared/common"
 
+    # Создаем точку монтирования, если она не существует
     if [ ! -d "$mount_point" ]; then
         sudo mkdir -p "$mount_point"
         echo -e "${GREEN}Точка монтирования $mount_point создана.${NC}"
@@ -341,6 +332,7 @@ setup_network_mount() {
         echo -e "${YELLOW}Точка монтирования $mount_point уже существует.${NC}"
     fi
 
+    # Добавляем запись в /etc/fstab, если её нет
     fstab_entry="$share_path $mount_point cifs user,nofail,credentials=$credentials_file,iocharset=utf8,file_mode=0777,dir_mode=0777 0 0"
     if ! grep -Fxq "$fstab_entry" /etc/fstab; then
         echo "$fstab_entry" | sudo tee -a /etc/fstab > /dev/null
@@ -354,6 +346,7 @@ setup_network_mount() {
         echo -e "${YELLOW}Запись для $share_path уже существует в /etc/fstab.${NC}"
     fi
 
+    # Тестируем монтирование
     echo -e "${BLUE}Тестирование монтирования сетевой папки...${NC}"
     sudo mount -a
     if [ $? -eq 0 ]; then
@@ -700,7 +693,7 @@ run_all() {
 }
 
 # Запуск анимации перед началом скрипта
-walking_man_animation
+ufo_animation
 
 # Основной цикл скрипта
 while true; do
