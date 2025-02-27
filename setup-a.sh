@@ -122,9 +122,9 @@ install_packages() {
 # Функция для настройки сети
 configure_network() {
     echo -e "${BLUE}Настройка сети...${NC}"
-    echo "search example.com" | sudo tee -a /etc/resolv.conf > /dev/null
+    echo "search expnet.ru" | sudo tee -a /etc/resolv.conf > /dev/null
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Настройка сети завершена (домен поиска: example.com).${NC}"
+        echo -e "${GREEN}Настройка сети завершена (домен поиска: expnet.ru).${NC}"
     else
         echo -e "${RED}Ошибка при настройке сети.${NC}"
     fi
@@ -293,7 +293,7 @@ setup_network_mount() {
                     return 0
                 fi
             else
-                echo -e kernels"${RED}Не удалось загрузить модуль CIFS. Возможно, нужно обновить ядро.${NC}"
+                echo -e "${RED}Не удалось загрузить модуль CIFS. Возможно, нужно обновить ядро.${NC}"
                 return 1
             fi
         else
