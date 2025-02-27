@@ -17,7 +17,7 @@ show_menu() {
     echo -e "5. ${YELLOW}Создать каталог /media/shared/common и настроить права${NC}"
     echo -e "6. ${YELLOW}Создать файл .windowscredentials для монтирования сетевого каталога${NC}"
     echo -e "7. ${YELLOW}Настроить монтирование сетевой папки в /etc/fstab${NC}"
-    echo -e "8. ${YELLOW}Установить КриптоПро CSP${NC}"
+    echo -e "8. ${YELLOW}Установить КриптоПро CSP (только КС1, без КС2)${NC}"
     echo -e "9. ${YELLOW}Выполнить все пункты${NC}"
     echo -e "10. ${YELLOW}Выйти${NC}"
 }
@@ -305,9 +305,9 @@ setup_network_mount() {
     fi
 }
 
-# Функция для установки КриптоПро CSP
+# Функция для установки КриптоПро CSP (только КС1, без КС2)
 install_cryptopro() {
-    echo -e "${BLUE}Установка КриптоПро CSP...${NC}"
+    echo -e "${BLUE}Установка КриптоПро CSP (только КС1, без КС2)...${NC}"
 
     # Проверка наличия установленного КриптоПро
     if command -v cprocsp-uninstall.sh &>/dev/null; then
@@ -325,11 +325,11 @@ install_cryptopro() {
     fi
     echo -e "${GREEN}Необходимые пакеты для КриптоПро успешно установлены.${NC}"
 
-    # Проверка наличия архива linux-amd64_deb.tgz
+    # Проверка наличия архiva linux-amd64_deb.tgz
     cryptopro_archive="linux-amd64_deb.tgz"
     if [ ! -f "$cryptopro_archive" ]; then
         echo -e "${RED}Архив $cryptopro_archive не найден в текущей директории.${NC}"
-        echo -e "${YELLOW}Пожалуйста, скачайте дистрибутив 'linux-amd64_deb.tgz' с сайта cryptopro.ru (раздел 'Центр загрузки') и поместите его в текущую директорию.${NC}"
+        echo -e "${YELLOW}Пожалуйста, скачайте дистрибутив КриптоПро CSP версии 4.0 (только КС1, без КС2) с сайта cryptopro.ru (раздел 'Центр загрузки') и поместите его в текущую директорию как 'linux-amd64_deb.tgz'.${NC}"
         return 1
     fi
 
@@ -375,6 +375,25 @@ install_cryptopro() {
     }
 
     echo -e "${GREEN}КриптоПро CSP успешно установлен.${NC}"
+
+    # Проверка версии КриптоПро
+    cryptopro_version=$(/opt/cprocsp/bin/amd64/cryptcp --version 2>/dev/null | grep -oP '\d+\.\d+')
+    if [[ "$cryptopro_version" =~ ^5\.[0-9]+$ ]]; then
+        echo -e "${RED}Установлена версия $cryptopro_version с поддержкой КС2 (ГОСТ Р 34.10-2012), что не соответствует требованию 'только КС1'.${NC}"
+        echo -e -n "${YELLOW}Удалить установленную версию и прервать установку? (y/n): ${NC}"
+        read remove_choice
+        if [[ "$remove_choice" =~ ^[Yy]$ ]]; then
+            sudo apt purge -y cprocsp-*
+            echo -e "${YELLOW}КриптоПро CSP удален. Скачайте версию 4.0 (без КС2) с сайта cryptopro.ru и повторите установку.${NC}"
+            return 1
+        else
+            echo -e "${YELLOW}Установка версии $cryptopro_version продолжена, несмотря на поддержку КС2.${NC}"
+        fi
+    elif [[ "$cryptopro_version" =~ ^4\.[0-9]+$ ]]; then
+        echo -e "${GREEN}Установлена версия $cryptopro_version без поддержки КС2 (только ГОСТ Р 34.10-2001), как требуется.${NC}"
+    else
+        echo -e "${YELLOW}Не удалось определить версию КриптоПро. Проверьте установку вручную: /opt/cprocsp/bin/amd64/cryptcp --version${NC}"
+    fi
 
     # Запрос ввода лицензионного ключа
     echo -e -n "${YELLOW}Введите лицензионный ключ для КриптоПро CSP (например, 50503-P0000-0197W-TA2AB-DWG2R): ${NC}"
