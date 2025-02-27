@@ -23,10 +23,11 @@ EOF'
     echo "Файл /etc/apt/sources.list обновлен."
 }
 
-# Функция для обновления системы с использованием dist-upgrade
+# Функция для обновления системы с использованием astra-update
 update_system() {
-    echo "Обновление системы (включая обновление дистрибутива)..."
-    sudo apt-get update && sudo apt-get dist-upgrade -y
+    echo "Обновление системы..."
+    sudo apt update
+    sudo astra-update -A -r
     echo "Обновление системы завершено."
 }
 
