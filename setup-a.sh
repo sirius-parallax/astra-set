@@ -49,9 +49,33 @@ configure_network() {
 # Функция для создания нового пользователя
 create_user() {
     echo "Создание нового пользователя..."
-    read -p "Введите имя нового пользователя: " username
-    sudo adduser $username
-    echo "Пользователь $username создан."
+
+    # Запрос имени пользователя
+    read -p "Введите полное имя пользователя: " full_name
+
+    # Запрос логина
+    read -p "Введите логин пользователя: " username
+
+    # Запрос пароля
+    read -sp "Введите пароль для пользователя $username: " password
+    echo
+
+    # Создание пользователя
+    sudo useradd -m -c "$full_name" -s /bin/bash "$username"
+    if [ $? -eq 0 ]; then
+        echo "Пользователь $username успешно создан."
+    else
+        echo "Ошибка при создании пользователя $username."
+        return 1
+    fi
+
+    # Установка пароля
+    echo "$username:$password" | sudo chpasswd
+    if [ $? -eq 0 ]; then
+        echo "Пароль для пользователя $username успешно установлен."
+    else
+        echo "Ошибка при установке пароля для пользователя $username."
+    fi
 }
 
 # Функция для выполнения всех пунктов
